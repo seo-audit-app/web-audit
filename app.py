@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import pandas as pd
 from crawler import crawl_website
@@ -16,7 +15,8 @@ if st.button("Run Audit"):
             try:
                 results = crawl_website(url)
                 if results:
-                    df = pd.DataFrame(results, columns=["URL", "Status Code", "Title"])
+                    # Updated column names to include Title Length
+                    df = pd.DataFrame(results, columns=["URL", "Status Code", "Title", "Title Length"])
                     st.success("Audit complete! ✅")
                     st.dataframe(df, use_container_width=True)
 

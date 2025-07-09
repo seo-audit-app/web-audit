@@ -23,8 +23,11 @@ def crawl_website(start_url, max_pages=20):
                 response = requests.get(url, timeout=5)
                 status = response.status_code
                 soup = BeautifulSoup(response.text, "html.parser")
-                title = soup.title.string.strip() if soup.title else "No Title"
-                results.append([url, status, title])  # ✅ return as list
+                
+                title = soup.title.string.strip() if soup.title and soup.title.string else "No Title"
+                title_length = len(title)
+                
+                results.append((url, status, title, title_length))
                 visited.add(url)
 
                 # Find internal links
@@ -34,10 +37,10 @@ def crawl_website(start_url, max_pages=20):
                         queue.append(link)
 
             except requests.RequestException:
-                results.append([url, "Error", "Request failed"])
+                results.append((url, "Error", "Request failed", 0))
                 visited.add(url)
 
     except Exception as e:
-        results.append([start_url, "Error", str(e)])
+        results.append((start_url, "Error", str(e), 0))
 
     return results
