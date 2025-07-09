@@ -15,12 +15,14 @@ if st.button("Run Audit"):
             try:
                 results = crawl_website(url)
                 if results:
-                    # Updated column names to include Title Length
+                    # ✅ Add title length to each row
+                    for row in results:
+                        row.append(len(row[2]))  # row[2] is the title
+
                     df = pd.DataFrame(results, columns=["URL", "Status Code", "Title", "Title Length"])
                     st.success("Audit complete! ✅")
                     st.dataframe(df, use_container_width=True)
 
-                    # Export CSV button
                     csv = df.to_csv(index=False).encode("utf-8")
                     st.download_button(
                         label="📥 Download CSV",
