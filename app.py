@@ -36,4 +36,3 @@ if st.button("Run Audit"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid URL.")
-        
