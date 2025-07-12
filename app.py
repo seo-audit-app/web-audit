@@ -10,7 +10,7 @@ hide_streamlit_style = """
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .css-164nlkn.egzxvld1 {display: none;} /* GitHub icon */
+    .css-164nlkn.egzxvld1 {display: none;}
     </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
@@ -31,12 +31,15 @@ if st.button("🚀 Run Audit", use_container_width=True):
                 page_data, summary = crawl_website(url)
 
                 if page_data:
-                    df = pd.DataFrame(page_data)
-                    df.columns = ["URL", "Status Code", "Title", "Title Length", "Meta Description", "Description Length", "Noindex"]
+                    # ✅ Safe column assignment on DataFrame creation
+                    df = pd.DataFrame(page_data, columns=[
+                        "URL", "Status Code", "Title", "Title Length",
+                        "Meta Description", "Description Length", "Noindex"
+                    ])
 
                     st.success(f"✅ Audit complete! {len(df)} pages crawled.")
 
-                    # Phase 2: Summary Table
+                    # Phase 2: Website Summary
                     st.markdown("## 🧾 Website Summary")
                     col1, col2, col3, col4 = st.columns(4)
                     col1.metric("Total Pages", summary['total_pages'])
@@ -48,7 +51,7 @@ if st.button("🚀 Run Audit", use_container_width=True):
                     col2b.metric("Robots.txt Found", summary['robots_found'])
                     col3b.metric("GA Code Found", summary['ga_found'])
 
-                    # Phase 3: Layout with 3 Boxes
+                    # Phase 3: 3-Column Layout
                     st.markdown("---")
                     left, middle, right = st.columns([1, 4, 1])
 
@@ -86,11 +89,11 @@ if st.button("🚀 Run Audit", use_container_width=True):
                         st.subheader("Issue Summary")
                         issues = [
                             ("Missing Titles", len(df[df['Title'].isnull() | (df['Title'] == "")])),
-                            ("Duplicate Titles", len(dup_titles)),
+                            ("Duplicate Titles", len(df[df.duplicated('Title', keep=False)])),
                             ("Short Titles", len(df[df['Title Length'] < 30])),
                             ("Long Titles", len(df[df['Title Length'] > 60])),
                             ("Missing Descriptions", len(df[df['Meta Description'].isnull() | (df['Meta Description'] == "")])),
-                            ("Duplicate Descriptions", len(dup_desc)),
+                            ("Duplicate Descriptions", len(df[df.duplicated('Meta Description', keep=False)])),
                             ("Short Descriptions", len(df[df['Description Length'] < 60])),
                             ("Long Descriptions", len(df[df['Description Length'] > 160]))
                         ]
