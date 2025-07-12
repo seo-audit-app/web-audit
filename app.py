@@ -15,8 +15,9 @@ if st.button("Run Audit"):
             try:
                 results = crawl_website(url)
                 if results:
-                    # ✅ Convert tuples to lists and add title length
-                    results = [list(row) + [len(row[2])] for row in results]
+                    # ✅ Only add title length if it's not already present
+                    if len(results[0]) == 3:
+                        results = [list(row) + [len(row[2])] for row in results]
 
                     df = pd.DataFrame(results, columns=["URL", "Status Code", "Title", "Title Length"])
                     st.success("Audit complete! ✅")
@@ -35,3 +36,4 @@ if st.button("Run Audit"):
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please enter a valid URL.")
+        
