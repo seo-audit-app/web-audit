@@ -115,10 +115,10 @@ def crawl_website(start_url, max_pages=50):
         "total_pages": len(visited),
         "internal_links": len(internal_links),
         "external_links": len(external_links),
-        "robots_txt": found_robots,
-        "sitemap_xml": found_sitemap,
-        "ga_code_found": found_ga,
-        "noindex_urls": noindex_urls,
+        "robots_found": found_robots,
+        "sitemap_found": found_sitemap,
+        "ga_found": found_ga,
+        "noindex_count": len(noindex_urls)
     }
 
     return results, summary
