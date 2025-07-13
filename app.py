@@ -1,24 +1,26 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="SEO Audit Tool", layout="wide")
+# Mock Data (this will be replaced by crawler data later)
+data = [
+    {"URL": "https://example.com", "Title": "Example Title", "Title Length": 20, "Meta Description": "This is a test.", "Description Length": 15},
+    {"URL": "https://example.com/about", "Title": "", "Title Length": 0, "Meta Description": "About us page description.", "Description Length": 26},
+    {"URL": "https://example.com/contact", "Title": "Contact | Example", "Title Length": 18, "Meta Description": "Contact page.", "Description Length": 14},
+    {"URL": "https://example.com/long-title", "Title": "This is a very long title exceeding normal length", "Title Length": 52, "Meta Description": "Long meta description example that exceeds the usual limit.", "Description Length": 65},
+]
 
-# Hide Streamlit's default menu and GitHub icon
-hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .css-164nlkn.egzxvld1 {display: none;}
-    .block-container {padding: 1rem 2rem;}
-    .dataframe td, .dataframe th {
-        border: 1px solid black;
-        text-align: center;
-        font-weight: bold;
-    }
-    </style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+summary = {
+    "total_pages": 50,
+    "internal_pages": 42,
+    "external_pages": 8,
+    "noindex_count": 3,
+    "sitemap_found": True,
+    "robots_found": True,
+    "ga_found": False
+}
+
+# Start Streamlit
+st.set_page_config(page_title="SEO Audit Tool", layout="wide")
 
 st.markdown("""
     <div style='text-align: center; padding: 1rem;'>
@@ -27,70 +29,107 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Mock data placeholders
-summary = {
-    "total_pages": 12,
-    "internal_pages": 10,
-    "external_pages": 2,
-    "sitemap_found": True,
-    "robots_found": True,
-    "ga_found": False,
-    "noindex_count": 1
-}
-
 st.markdown("## 🧾 Website Summary")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Pages", summary['total_pages'])
-col2.metric("Internal Pages", summary['internal_pages'])
-col3.metric("External Pages", summary['external_pages'])
-col4.metric("Noindex URLs", summary['noindex_count'])
-col1b, col2b, col3b = st.columns(3)
-col1b.metric("Sitemap Found", "✅" if summary['sitemap_found'] else "❌")
-col2b.metric("Robots.txt Found", "✅" if summary['robots_found'] else "❌")
-col3b.metric("GA Code Found", "✅" if summary['ga_found'] else "❌")
+summary_table = pd.DataFrame({
+    "Metric": ["Total Pages", "Internal Pages", "External Pages", "Noindex URLs", "Sitemap Found", "Robots.txt Found", "GA Code Found"],
+    "Value": [
+        summary['total_pages'],
+        summary['internal_pages'],
+        summary['external_pages'],
+        summary['noindex_count'],
+        "Yes" if summary['sitemap_found'] else "No",
+        "Yes" if summary['robots_found'] else "No",
+        "Yes" if summary['ga_found'] else "No"
+    ]
+})
 
+st.dataframe(summary_table.style.set_properties(**{
+    'border': '1px solid black',
+    'text-align': 'center',
+    'font-weight': 'bold'
+}).set_table_styles([{
+    'selector': 'th',
+    'props': [('text-align', 'center'), ('border', '1px solid black'), ('font-weight', 'bold')]
+}]), use_container_width=True)
+
+# Layout
 st.markdown("---")
-
-# Left, Middle, Right Layout
-left, middle, right = st.columns([1.5, 5, 2])
+left, middle, right = st.columns([1.2, 3.8, 1.5])
 
 with left:
     st.subheader("Main Checks")
-    check_option = st.radio("Select Category", ["Meta Title", "Meta Description"], index=0)
+    main_check = st.radio("Select Section", ["Meta Title", "Meta Description"])
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
+    filter_option = st.selectbox("Filter By", ["All", "Missing", "Duplicate", "Short", "Long"])
 
-    sub_filter = st.selectbox("Select Sub-Issue", ["All", "Missing", "Duplicate", "Too Short", "Too Long"])
+    df = pd.DataFrame(data)
+    filtered_df = df.copy()
 
-    meta_data = pd.DataFrame([
-        {"Sr. No": 1, "URL": "https://example.com/page1", "Meta Title": "Home", "Length": 4},
-        {"Sr. No": 2, "URL": "https://example.com/page2", "Meta Title": "", "Length": 0},
-        {"Sr. No": 3, "URL": "https://example.com/page3", "Meta Title": "About Us", "Length": 9},
-        {"Sr. No": 4, "URL": "https://example.com/page4", "Meta Title": "Very very long title that exceeds recommended length", "Length": 55}
-    ])
+    if main_check == "Meta Title":
+        if filter_option == "Missing":
+            filtered_df = df[df['Title'] == ""]
+        elif filter_option == "Duplicate":
+            filtered_df = df[df.duplicated('Title', keep=False) & (df['Title'] != "")]
+        elif filter_option == "Short":
+            filtered_df = df[df['Title Length'] < 30]
+        elif filter_option == "Long":
+            filtered_df = df[df['Title Length'] > 60]
+        table = filtered_df[['URL', 'Title', 'Title Length']].reset_index(drop=True)
+    else:
+        if filter_option == "Missing":
+            filtered_df = df[df['Meta Description'] == ""]
+        elif filter_option == "Duplicate":
+            filtered_df = df[df.duplicated('Meta Description', keep=False) & (df['Meta Description'] != "")]
+        elif filter_option == "Short":
+            filtered_df = df[df['Description Length'] < 60]
+        elif filter_option == "Long":
+            filtered_df = df[df['Description Length'] > 160]
+        table = filtered_df[['URL', 'Meta Description', 'Description Length']].reset_index(drop=True)
 
-    if sub_filter == "Missing":
-        meta_data = meta_data[meta_data['Meta Title'] == ""]
-    elif sub_filter == "Duplicate":
-        meta_data = meta_data[meta_data.duplicated('Meta Title', keep=False)]
-    elif sub_filter == "Too Short":
-        meta_data = meta_data[meta_data['Length'] < 30]
-    elif sub_filter == "Too Long":
-        meta_data = meta_data[meta_data['Length'] > 60]
+    table.index += 1
+    table.reset_index(inplace=True)
+    table.columns = ["Sr. No."] + list(table.columns[1:])
 
-    st.dataframe(meta_data, use_container_width=True)
+    st.dataframe(table.style.set_properties(**{
+        'border': '1px solid black',
+        'text-align': 'center'
+    }).set_table_styles([{
+        'selector': 'th',
+        'props': [('text-align', 'center'), ('border', '1px solid black'), ('font-weight', 'bold')]
+    }]), use_container_width=True)
 
 with right:
     st.subheader("Issue Summary")
+    issues = []
 
-    summary_data = pd.DataFrame([
-        {"Sr.": 1, "Issue Type": "Missing Titles", "URL Count": 1},
-        {"Sr.": 2, "Issue Type": "Duplicate Titles", "URL Count": 0},
-        {"Sr.": 3, "Issue Type": "Short Titles", "URL Count": 2},
-        {"Sr.": 4, "Issue Type": "Long Titles", "URL Count": 1},
-    ])
+    if main_check == "Meta Title":
+        issues = [
+            ("Missing Titles", len(df[df['Title'] == ""])),
+            ("Duplicate Titles", len(df[df.duplicated('Title', keep=False) & (df['Title'] != "")])),
+            ("Short Titles (<30)", len(df[df['Title Length'] < 30])),
+            ("Long Titles (>60)", len(df[df['Title Length'] > 60]))
+        ]
+    else:
+        issues = [
+            ("Missing Descriptions", len(df[df['Meta Description'] == ""])),
+            ("Duplicate Descriptions", len(df[df.duplicated('Meta Description', keep=False) & (df['Meta Description'] != "")])),
+            ("Short Descriptions (<60)", len(df[df['Description Length'] < 60])),
+            ("Long Descriptions (>160)", len(df[df['Description Length'] > 160]))
+        ]
 
-    st.dataframe(summary_data, use_container_width=True)
+    issue_df = pd.DataFrame(issues, columns=["Issue Type", "URL Count"])
+    issue_df.index += 1
+    issue_df.reset_index(inplace=True)
+    issue_df.columns = ["Sr. No.", "Issue Type", "URL Count"]
 
-    st.download_button("📥 Download Full Report", meta_data.to_csv(index=False).encode("utf-8"), "seo_audit.csv", "text/csv")
+    st.dataframe(issue_df.style.set_properties(**{
+        'border': '1px solid black',
+        'text-align': 'center'
+    }).set_table_styles([{
+        'selector': 'th',
+        'props': [('text-align', 'center'), ('border', '1px solid black'), ('font-weight', 'bold')]
+    }]), use_container_width=True)
+
+    st.download_button("📥 Download Full Report", df.to_csv(index=False).encode("utf-8"), "seo_audit.csv", "text/csv")
