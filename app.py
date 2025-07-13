@@ -12,10 +12,12 @@ summary_table = pd.DataFrame([{
     "Noindex URLs": 3
 }])
 
+# Extended mock data with status labels for filtering
 df_mock = pd.DataFrame({
     "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
     "Meta Title": ["Home", "Contact", ""],
-    "Length": [4, 7, 0]
+    "Length": [4, 7, 0],
+    "Status": ["Short", "All Good", "Missing"]
 })
 
 issue_summary = [
@@ -77,19 +79,33 @@ with left:
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
+    
+    # Filter dropdown
+    selected_filter = st.selectbox("Filter by Issue Type", ["All", "Missing", "Duplicate", "Short", "Long", "Multiple"])
+
     if selected_main == "Meta Title":
-        st.markdown("##### Showing: Meta Title")
-        st.dataframe(df_mock[["URL", "Meta Title", "Length"]], use_container_width=True)
+        df_display = df_mock[["URL", "Meta Title", "Length", "Status"]].copy()
+        df_display.rename(columns={"Meta Title": "Meta Title/Description"}, inplace=True)
 
     elif selected_main == "Meta Description":
-        st.markdown("##### Showing: Meta Description")
-        df_desc = df_mock.copy()
-        df_desc.rename(columns={"Meta Title": "Meta Description"}, inplace=True)
-        st.dataframe(df_desc[["URL", "Meta Description", "Length"]], use_container_width=True)
+        df_display = df_mock[["URL", "Meta Title", "Length", "Status"]].copy()
+        df_display.rename(columns={
+            "Meta Title": "Meta Title/Description",
+        }, inplace=True)
+        df_display["Meta Title/Description"] = ["Welcome to site", "", "About Us"]
+        df_display["Status"] = ["Duplicate", "Missing", "Short"]
+
+    # Apply filter logic
+    if selected_filter != "All":
+        df_display = df_display[df_display["Status"] == selected_filter]
+
+    df_display.insert(0, "Sr.No", range(1, len(df_display)+1))
+    st.dataframe(df_display[["Sr.No", "URL", "Meta Title/Description", "Length", "Status"]], use_container_width=True)
 
 with right:
     st.subheader("Issue Summary")
     df_issues = pd.DataFrame(issue_summary, columns=["Issue", "URL Count"])
+    df_issues.insert(0, "Sr.No", range(1, len(df_issues)+1))
     st.dataframe(df_issues, use_container_width=True)
 
     csv = df_mock.to_csv(index=False).encode("utf-8")
