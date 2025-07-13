@@ -83,11 +83,6 @@ st.markdown("""
             border-radius: 8px;
             padding: 10px;
         }
-        .scrollable-dataframe {
-            overflow-x: auto;
-            overflow-y: auto;
-            height: 450px;
-        }
         .stSelectbox { margin-bottom: 0.25rem !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -112,7 +107,7 @@ st.dataframe(summary_table.style.set_properties(**{
 
 st.markdown("---")
 
-# ✅ Layout with adjusted column ratios and scrollable sub-issue box
+# ✅ Layout with adjusted column ratios
 left, middle, right = st.columns([2, 4, 2])
 
 with left:
@@ -134,9 +129,7 @@ with middle:
     if selected_filter != "All":
         df_display = df_display[df_display["Issue Type"] == selected_filter]
 
-    st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
     st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     st.subheader("Issue Summary")
