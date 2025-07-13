@@ -20,7 +20,7 @@ MAIN_CHECKS = {
     "Meta Description": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "Meta Robots Tag": ["Missing", "Noindex", "Nofollow", "Conflicting Directives"],
     "Page Size": ["Over 500KB", "Over 1MB", "Heavy Images", "Excessive Scripts"],
-    "Schema Markup": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
+    "Schema Markup / Structured Data": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
     "Title Tag": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "URL Structure": ["Long URLs", "Contains UTM", "Dynamic Params", "Mixed Case", "Underscores"],
     "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
@@ -124,20 +124,19 @@ with left:
 with middle:
     st.subheader("Sub-Issue Breakdown")
 
-    with st.container():
-        filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
-        selected_filter = st.selectbox("Filter by Issue Type", filter_options)
+    filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
+    selected_filter = st.selectbox("Filter by Issue Type", filter_options)
 
-        df_display = df_mock.copy()
-        df_display["Issue Type"] = df_display["Status"]
-        df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
+    df_display = df_mock.copy()
+    df_display["Issue Type"] = df_display["Status"]
+    df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
 
-        if selected_filter != "All":
-            df_display = df_display[df_display["Issue Type"] == selected_filter]
+    if selected_filter != "All":
+        df_display = df_display[df_display["Issue Type"] == selected_filter]
 
-        st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
-        st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
+    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     st.subheader("Issue Summary")
