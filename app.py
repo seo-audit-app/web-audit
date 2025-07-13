@@ -12,7 +12,7 @@ summary_table = pd.DataFrame([{
     "Noindex URLs": 3
 }])
 
-# Extended mock data with status labels for filtering
+# Mock SEO data
 df_mock = pd.DataFrame({
     "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
     "Meta Title": ["Home", "Contact", ""],
@@ -38,18 +38,25 @@ st.set_page_config(page_title="SEO Audit Tool", layout="wide")
 st.markdown("""
     <style>
         #MainMenu, header, footer {visibility: hidden;}
-        .css-164nlkn.egzxvld1 {display: none;}
+        .block-container {
+            padding-top: 1rem;
+            padding-left: 2%;
+            padding-right: 2%;
+        }
         table, th, td {
             border: 2px solid black !important;
             border-collapse: collapse !important;
             text-align: center !important;
+            vertical-align: middle !important;
         }
         thead {
             background-color: #f0f0f0;
             font-weight: bold;
         }
-        .block-container {
-            padding-top: 1rem;
+        .main-check-box {
+            border: 2px solid black;
+            border-radius: 8px;
+            padding: 10px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -59,29 +66,30 @@ st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_al
 st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ✅ Summary Table with center-aligned values
+# ✅ Summary Table with full center alignment
 st.markdown("### 🧾 Website Summary")
-st.dataframe(summary_table.style
-    .set_properties(**{'text-align': 'center'})
-    .set_table_styles([{
-        'selector': 'th',
-        'props': [('text-align', 'center'), ('font-weight', 'bold')]
-    }]),
-    use_container_width=True
-)
+styled_summary = summary_table.style.set_properties(**{
+    'text-align': 'center',
+    'vertical-align': 'middle'
+}).set_table_styles([{
+    'selector': 'th',
+    'props': [('text-align', 'center'), ('font-weight', 'bold')]
+}])
+st.dataframe(styled_summary, use_container_width=True)
+
 st.markdown("---")
 
-# ✅ Layout
+# ✅ Layout: 96% width via CSS block-container, visible bordered menu
 left, middle, right = st.columns([1, 5, 2])
 
 with left:
+    st.markdown('<div class="main-check-box">', unsafe_allow_html=True)
     st.subheader("Main Checks")
     selected_main = st.radio("", ["Meta Title", "Meta Description"], label_visibility="collapsed")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-
-    # Filter dropdown
     selected_filter = st.selectbox("Filter by Issue Type", ["All", "Missing", "Duplicate", "Short", "Long", "Multiple"])
 
     if selected_main == "Meta Title":
@@ -90,23 +98,18 @@ with middle:
 
     elif selected_main == "Meta Description":
         df_display = df_mock[["URL", "Meta Title", "Length", "Status"]].copy()
-        df_display.rename(columns={
-            "Meta Title": "Meta Title/Description",
-        }, inplace=True)
+        df_display.rename(columns={"Meta Title": "Meta Title/Description"}, inplace=True)
         df_display["Meta Title/Description"] = ["Welcome to site", "", "About Us"]
         df_display["Status"] = ["Duplicate", "Missing", "Short"]
 
     if selected_filter != "All":
         df_display = df_display[df_display["Status"] == selected_filter]
 
-    # ✅ Removed manual Sr.No
     st.dataframe(df_display[["URL", "Meta Title/Description", "Length", "Status"]], use_container_width=True)
 
 with right:
     st.subheader("Issue Summary")
     df_issues = pd.DataFrame(issue_summary, columns=["Issue", "URL Count"])
-    
-    # ✅ Removed manual Sr.No
     st.dataframe(df_issues, use_container_width=True)
 
     csv = df_mock.to_csv(index=False).encode("utf-8")
