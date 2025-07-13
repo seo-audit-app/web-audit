@@ -83,6 +83,11 @@ st.markdown("""
             border-radius: 8px;
             padding: 10px;
         }
+        .scrollable-dataframe {
+            overflow-x: auto;
+            overflow-y: auto;
+            height: 450px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -104,8 +109,8 @@ st.dataframe(styled_summary, use_container_width=True)
 
 st.markdown("---")
 
-# ✅ Layout with 96% width and bordered main check
-left, middle, right = st.columns([1, 5, 2])
+# ✅ Layout with adjusted column ratios and scrollable sub-issue box
+left, middle, right = st.columns([2, 4, 2])
 
 with left:
     st.markdown('<div class="main-check-box">', unsafe_allow_html=True)
@@ -125,7 +130,10 @@ with middle:
     if selected_filter != "All":
         df_display = df_display[df_display["Status"] == selected_filter]
 
-    st.dataframe(df_display[["URL", f"{selected_main} Data", "Length", "Status"]], use_container_width=True)
+    with st.container():
+        st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
+        st.dataframe(df_display[["URL", f"{selected_main} Data", "Length", "Status"]], use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     st.subheader("Issue Summary")
