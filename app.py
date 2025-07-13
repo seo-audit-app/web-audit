@@ -88,6 +88,7 @@ st.markdown("""
             overflow-y: auto;
             height: 450px;
         }
+        .stSelectbox { margin-bottom: 0.25rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -122,17 +123,18 @@ with left:
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-    filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
-    selected_filter = st.selectbox("Filter by Issue Type", filter_options)
-
-    df_display = df_mock.copy()
-    df_display["Issue Type"] = df_display["Status"]
-    df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
-
-    if selected_filter != "All":
-        df_display = df_display[df_display["Issue Type"] == selected_filter]
 
     with st.container():
+        filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
+        selected_filter = st.selectbox("Filter by Issue Type", filter_options)
+
+        df_display = df_mock.copy()
+        df_display["Issue Type"] = df_display["Status"]
+        df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
+
+        if selected_filter != "All":
+            df_display = df_display[df_display["Issue Type"] == selected_filter]
+
         st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
         st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
