@@ -37,10 +37,10 @@ summary_table = pd.DataFrame([{
     "Noindex URLs": 3
 }])
 
-# Mock master data (this should ideally change based on the main check)
+# Mock master data for testing filters
 df_mock = pd.DataFrame({
     "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
-    "Data": ["Value 1", "Value 2", "Value 3"],
+    "Issue Detail": ["Missing", "Duplicate", "Short"],
     "Length": [12, 8, 15],
     "Status": ["Missing", "Duplicate", "Short"]
 })
@@ -98,14 +98,16 @@ st.markdown("---")
 
 # ✅ Summary Table
 st.markdown("### 🧾 Website Summary")
-styled_summary = summary_table.style.set_properties(**{
+st.dataframe(summary_table.style.set_properties(**{
     'text-align': 'center',
     'vertical-align': 'middle'
 }).set_table_styles([{
+    'selector': 'td',
+    'props': [('text-align', 'center'), ('vertical-align', 'middle')]
+}, {
     'selector': 'th',
     'props': [('text-align', 'center'), ('font-weight', 'bold')]
-}])
-st.dataframe(styled_summary, use_container_width=True)
+}]), use_container_width=True)
 
 st.markdown("---")
 
@@ -120,19 +122,19 @@ with left:
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-
     filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
     selected_filter = st.selectbox("Filter by Issue Type", filter_options)
 
     df_display = df_mock.copy()
-    df_display.rename(columns={"Data": f"{selected_main} Data"}, inplace=True)
+    df_display["Issue Type"] = df_display["Status"]
+    df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
 
     if selected_filter != "All":
-        df_display = df_display[df_display["Status"] == selected_filter]
+        df_display = df_display[df_display["Issue Type"] == selected_filter]
 
     with st.container():
         st.markdown('<div class="scrollable-dataframe">', unsafe_allow_html=True)
-        st.dataframe(df_display[["URL", f"{selected_main} Data", "Length", "Status"]], use_container_width=True)
+        st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
