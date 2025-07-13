@@ -1,7 +1,32 @@
 import streamlit as st
 import pandas as pd
 
-# Sample mock data
+# ✅ MAIN CHECK TO FILTER MAPPING
+MAIN_CHECKS = {
+    "Breadcrumbs": ["Missing", "Multiple Breadcrumbs", "Non-structured format"],
+    "Broken Links (404, 5xx)": ["404 Errors", "5xx Errors", "Timeout", "Redirect Chains"],
+    "Canonical Tag": ["Missing", "Multiple", "Conflicting Canonical", "Self-referencing"],
+    "Crawlability (robots.txt)": ["Blocked by robots.txt", "Allowed", "Missing robots.txt"],
+    "External Links": ["Broken External", "Too Many", "Non-secure (http)", "No Anchor Text"],
+    "Favicon Check": ["Missing Favicon", "Invalid Format", "Not in Root"],
+    "H1 Tag": ["Missing H1", "Multiple H1"],
+    "H2 Tag": ["Missing H2", "Improper Order"],
+    "HTTP Status Code": ["2xx OK", "3xx Redirect", "4xx Error", "5xx Server Error"],
+    "HTTPS / SSL": ["No HTTPS", "Mixed Content", "Expired Certificate"],
+    "Images": ["Missing Alt Text", "Broken Image", "Large Size", "Lazy-load Not Used"],
+    "Indexability": ["Noindex Meta", "X-Robots Noindex", "Blocked URLs"],
+    "Internal Linking": ["Orphan Pages", "Too Few Links", "Broken Internal Links"],
+    "Language Tag": ["Missing <html lang>", "Invalid Lang Code", "Mismatched Language"],
+    "Meta Description": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
+    "Meta Robots Tag": ["Missing", "Noindex", "Nofollow", "Conflicting Directives"],
+    "Page Size": ["Over 500KB", "Over 1MB", "Heavy Images", "Excessive Scripts"],
+    "Schema Markup / Structured Data": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
+    "Title Tag": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
+    "URL Structure": ["Long URLs", "Contains UTM", "Dynamic Params", "Mixed Case", "Underscores"],
+    "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
+}
+
+# Sample summary table
 summary_table = pd.DataFrame([{
     "Total Pages": 35,
     "Internal Pages": 28,
@@ -12,12 +37,12 @@ summary_table = pd.DataFrame([{
     "Noindex URLs": 3
 }])
 
-# Mock SEO data
+# Mock master data (this should ideally change based on the main check)
 df_mock = pd.DataFrame({
     "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
-    "Meta Title": ["Home", "Contact", ""],
-    "Length": [4, 7, 0],
-    "Status": ["Short", "All Good", "Missing"]
+    "Data": ["Value 1", "Value 2", "Value 3"],
+    "Length": [12, 8, 15],
+    "Status": ["Missing", "Duplicate", "Short"]
 })
 
 issue_summary = [
@@ -66,7 +91,7 @@ st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_al
 st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ✅ Summary Table with full center alignment
+# ✅ Summary Table
 st.markdown("### 🧾 Website Summary")
 styled_summary = summary_table.style.set_properties(**{
     'text-align': 'center',
@@ -79,33 +104,28 @@ st.dataframe(styled_summary, use_container_width=True)
 
 st.markdown("---")
 
-# ✅ Layout: 96% width via CSS block-container, visible bordered menu
+# ✅ Layout with 96% width and bordered main check
 left, middle, right = st.columns([1, 5, 2])
 
 with left:
     st.markdown('<div class="main-check-box">', unsafe_allow_html=True)
     st.subheader("Main Checks")
-    selected_main = st.radio("", ["Meta Title", "Meta Description"], label_visibility="collapsed")
+    selected_main = st.radio("", list(MAIN_CHECKS.keys()), label_visibility="collapsed")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-    selected_filter = st.selectbox("Filter by Issue Type", ["All", "Missing", "Duplicate", "Short", "Long", "Multiple"])
 
-    if selected_main == "Meta Title":
-        df_display = df_mock[["URL", "Meta Title", "Length", "Status"]].copy()
-        df_display.rename(columns={"Meta Title": "Meta Title/Description"}, inplace=True)
+    filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
+    selected_filter = st.selectbox("Filter by Issue Type", filter_options)
 
-    elif selected_main == "Meta Description":
-        df_display = df_mock[["URL", "Meta Title", "Length", "Status"]].copy()
-        df_display.rename(columns={"Meta Title": "Meta Title/Description"}, inplace=True)
-        df_display["Meta Title/Description"] = ["Welcome to site", "", "About Us"]
-        df_display["Status"] = ["Duplicate", "Missing", "Short"]
+    df_display = df_mock.copy()
+    df_display.rename(columns={"Data": f"{selected_main} Data"}, inplace=True)
 
     if selected_filter != "All":
         df_display = df_display[df_display["Status"] == selected_filter]
 
-    st.dataframe(df_display[["URL", "Meta Title/Description", "Length", "Status"]], use_container_width=True)
+    st.dataframe(df_display[["URL", f"{selected_main} Data", "Length", "Status"]], use_container_width=True)
 
 with right:
     st.subheader("Issue Summary")
