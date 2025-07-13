@@ -20,7 +20,7 @@ MAIN_CHECKS = {
     "Meta Description": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "Meta Robots Tag": ["Missing", "Noindex", "Nofollow", "Conflicting Directives"],
     "Page Size": ["Over 500KB", "Over 1MB", "Heavy Images", "Excessive Scripts"],
-    "Schema Markup / Structured Data": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
+    "Schema Markup": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
     "Title Tag": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "URL Structure": ["Long URLs", "Contains UTM", "Dynamic Params", "Mixed Case", "Underscores"],
     "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
