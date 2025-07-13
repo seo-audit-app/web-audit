@@ -59,15 +59,16 @@ st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_al
 st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ✅ Summary Table
+# ✅ Summary Table with center-aligned values
 st.markdown("### 🧾 Website Summary")
-st.dataframe(summary_table.style.set_properties(**{
-    'text-align': 'center'
-}).set_table_styles([{
-    'selector': 'th',
-    'props': [('text-align', 'center'), ('font-weight', 'bold')]
-}]), use_container_width=True)
-
+st.dataframe(summary_table.style
+    .set_properties(**{'text-align': 'center'})
+    .set_table_styles([{
+        'selector': 'th',
+        'props': [('text-align', 'center'), ('font-weight', 'bold')]
+    }]),
+    use_container_width=True
+)
 st.markdown("---")
 
 # ✅ Layout
@@ -79,7 +80,7 @@ with left:
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-    
+
     # Filter dropdown
     selected_filter = st.selectbox("Filter by Issue Type", ["All", "Missing", "Duplicate", "Short", "Long", "Multiple"])
 
@@ -95,17 +96,17 @@ with middle:
         df_display["Meta Title/Description"] = ["Welcome to site", "", "About Us"]
         df_display["Status"] = ["Duplicate", "Missing", "Short"]
 
-    # Apply filter logic
     if selected_filter != "All":
         df_display = df_display[df_display["Status"] == selected_filter]
 
-    df_display.insert(0, "Sr.No", range(1, len(df_display)+1))
-    st.dataframe(df_display[["Sr.No", "URL", "Meta Title/Description", "Length", "Status"]], use_container_width=True)
+    # ✅ Removed manual Sr.No
+    st.dataframe(df_display[["URL", "Meta Title/Description", "Length", "Status"]], use_container_width=True)
 
 with right:
     st.subheader("Issue Summary")
     df_issues = pd.DataFrame(issue_summary, columns=["Issue", "URL Count"])
-    df_issues.insert(0, "Sr.No", range(1, len(df_issues)+1))
+    
+    # ✅ Removed manual Sr.No
     st.dataframe(df_issues, use_container_width=True)
 
     csv = df_mock.to_csv(index=False).encode("utf-8")
