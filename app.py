@@ -84,11 +84,6 @@ st.markdown("""
             padding: 10px;
         }
         .stSelectbox { margin-bottom: 0.25rem !important; }
-        .scrollable-subissue {
-            overflow-x: auto;
-            overflow-y: auto;
-            height: 400px;
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -134,9 +129,7 @@ with middle:
     if selected_filter != "All":
         df_display = df_display[df_display["Issue Type"] == selected_filter]
 
-    st.markdown('<div class="scrollable-subissue">', unsafe_allow_html=True)
-    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True, height=300)
 
 with right:
     st.subheader("Issue Summary")
