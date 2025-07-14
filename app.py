@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from crawler import run_crawler  # ✅ Make sure crawler.py is in the same folder
 
 # ✅ MAIN CHECK TO FILTER MAPPING
 MAIN_CHECKS = {
@@ -25,36 +26,6 @@ MAIN_CHECKS = {
     "URL Structure": ["Long URLs", "Contains UTM", "Dynamic Params", "Mixed Case", "Underscores"],
     "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
 }
-
-# Mock summary table
-summary_table = pd.DataFrame([{
-    "Total Pages": 35,
-    "Internal Pages": 28,
-    "External Pages": 7,
-    "XML Sitemap": "Found",
-    "Robots.txt": "Found",
-    "GA Code": "Yes",
-    "Noindex URLs": 3
-}])
-
-# Mock master data
-df_mock = pd.DataFrame({
-    "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
-    "Issue Detail": ["Missing", "Duplicate", "Short"],
-    "Length": [12, 8, 15],
-    "Status": ["Missing", "Duplicate", "Short"]
-})
-
-issue_summary = [
-    ("Missing Titles", 1),
-    ("Duplicate Titles", 0),
-    ("Short Titles", 1),
-    ("Long Titles", 0),
-    ("Missing Descriptions", 1),
-    ("Duplicate Descriptions", 0),
-    ("Short Descriptions", 1),
-    ("Long Descriptions", 0),
-]
 
 # ✅ Streamlit config
 st.set_page_config(page_title="SEO Audit Tool", layout="wide")
@@ -94,53 +65,75 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ✅ Title
-st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
-st.markdown("---")
+# ✅ Audit Form
+st.markdown("## Enter Website URL to Audit")
+with st.form("crawl_form"):
+    input_url = st.text_input("Website URL", "https://example.com")
+    max_pages = st.slider("Max Pages to Crawl", 10, 100, 30)
+    submitted = st.form_submit_button("Run Audit")
 
-# ✅ Website Summary
-st.markdown("### 🧾 Website Summary")
-st.dataframe(summary_table.style.set_properties(**{
-    'text-align': 'center',
-    'vertical-align': 'middle'
-}).set_table_styles([
-    {'selector': 'td', 'props': [('text-align', 'center'), ('vertical-align', 'middle')]},
-    {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]}
-]), use_container_width=True)
+# ✅ Crawler Trigger
+if submitted:
+    with st.spinner("🔍 Crawling website and analyzing SEO..."):
+        summary_table, df_master, issue_summary = run_crawler(input_url, max_pages=max_pages)
+    st.success("✅ Audit Complete!")
 
-st.markdown("---")
+    # Save to session state
+    st.session_state["summary_table"] = summary_table
+    st.session_state["df_master"] = df_master
+    st.session_state["issue_summary"] = issue_summary
 
-# ✅ Layout Columns
-left, middle, right = st.columns([2, 4, 2])
+# ✅ Load session state or fallback
+summary_table = st.session_state.get("summary_table", pd.DataFrame())
+df_master = st.session_state.get("df_master", pd.DataFrame())
+issue_summary = st.session_state.get("issue_summary", pd.DataFrame())
 
-with left:
-    st.markdown('<div class="main-check-box">', unsafe_allow_html=True)
-    st.subheader("Main Checks")
-    selected_main = st.radio("", list(MAIN_CHECKS.keys()), label_visibility="collapsed")
-    st.markdown("</div>", unsafe_allow_html=True)
+# ✅ Show summary if available
+if not summary_table.empty:
+    st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
+    st.markdown("---")
 
-with middle:
-    st.subheader("Sub-Issue Breakdown")
-    filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
-    selected_filter = st.selectbox("Filter by Issue Type", filter_options)
+    st.markdown("### 🧾 Website Summary")
+    st.dataframe(summary_table.style.set_properties(**{
+        'text-align': 'center',
+        'vertical-align': 'middle'
+    }).set_table_styles([
+        {'selector': 'td', 'props': [('text-align', 'center'), ('vertical-align', 'middle')]},
+        {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]}
+    ]), use_container_width=True)
 
-    df_display = df_mock.copy()
-    df_display["Issue Type"] = df_display["Status"]
-    df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
+    st.markdown("---")
 
-    if selected_filter != "All":
-        df_display = df_display[df_display["Issue Type"] == selected_filter]
+    # ✅ Layout Columns
+    left, middle, right = st.columns([2, 4, 2])
 
-    st.markdown('<div class="scrollable-table">', unsafe_allow_html=True)
-    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]],
-                 use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    with left:
+        st.markdown('<div class="main-check-box">', unsafe_allow_html=True)
+        st.subheader("Main Checks")
+        selected_main = st.radio("", list(MAIN_CHECKS.keys()), label_visibility="collapsed")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-with right:
-    st.subheader("Issue Summary")
-    df_issues = pd.DataFrame(issue_summary, columns=["Issue", "URL Count"])
-    st.dataframe(df_issues, use_container_width=True)
+    with middle:
+        st.subheader("Sub-Issue Breakdown")
+        filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
+        selected_filter = st.selectbox("Filter by Issue Type", filter_options)
 
-    csv = df_mock.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download Full Report", csv, "seo_mock_audit.csv", "text/csv", use_container_width=True)
+        df_display = df_master[df_master["Main Check"] == selected_main].copy()
+        df_display["Issue Type"] = df_display["Status"]
+        df_display.rename(columns={"Issue Detail": f"{selected_main} Detail"}, inplace=True)
+
+        if selected_filter != "All":
+            df_display = df_display[df_display["Issue Type"] == selected_filter]
+
+        st.markdown('<div class="scrollable-table">', unsafe_allow_html=True)
+        st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]],
+                     use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with right:
+        st.subheader("Issue Summary")
+        st.dataframe(issue_summary, use_container_width=True)
+
+        csv = df_master.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Full Report", csv, "seo_audit.csv", "text/csv", use_container_width=True)
