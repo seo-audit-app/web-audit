@@ -20,7 +20,7 @@ MAIN_CHECKS = {
     "Meta Description": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "Meta Robots Tag": ["Missing", "Noindex", "Nofollow", "Conflicting Directives"],
     "Page Size": ["Over 500KB", "Over 1MB", "Heavy Images", "Excessive Scripts"],
-    "Schema Markup / Structured Data": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
+    "Schema Markup": ["Missing", "Invalid JSON-LD", "Unrecognized Type"],
     "Title Tag": ["Missing", "Duplicate", "Short", "Long", "Multiple"],
     "URL Structure": ["Long URLs", "Contains UTM", "Dynamic Params", "Mixed Case", "Underscores"],
     "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
@@ -84,6 +84,11 @@ st.markdown("""
             padding: 10px;
         }
         .stSelectbox { margin-bottom: 0.25rem !important; }
+        .scrollable-subissue {
+            overflow-x: auto;
+            overflow-y: auto;
+            height: 400px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -129,7 +134,9 @@ with middle:
     if selected_filter != "All":
         df_display = df_display[df_display["Issue Type"] == selected_filter]
 
+    st.markdown('<div class="scrollable-subissue">', unsafe_allow_html=True)
     st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     st.subheader("Issue Summary")
