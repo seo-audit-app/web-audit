@@ -26,7 +26,7 @@ MAIN_CHECKS = {
     "XML Sitemap Presence": ["Not Found", "Invalid Format", "Not Declared in robots.txt"]
 }
 
-# Sample summary table
+# Mock summary table
 summary_table = pd.DataFrame([{
     "Total Pages": 35,
     "Internal Pages": 28,
@@ -37,7 +37,7 @@ summary_table = pd.DataFrame([{
     "Noindex URLs": 3
 }])
 
-# Mock master data for testing filters
+# Mock master data
 df_mock = pd.DataFrame({
     "URL": ["https://example.com/page1", "https://example.com/page2", "https://example.com/page3"],
     "Issue Detail": ["Missing", "Duplicate", "Short"],
@@ -56,10 +56,10 @@ issue_summary = [
     ("Long Descriptions", 0),
 ]
 
-# Streamlit config
+# ✅ Streamlit config
 st.set_page_config(page_title="SEO Audit Tool", layout="wide")
 
-# Custom styling
+# ✅ Styling
 st.markdown("""
     <style>
         #MainMenu, header, footer {visibility: hidden;}
@@ -83,31 +83,35 @@ st.markdown("""
             border-radius: 8px;
             padding: 10px;
         }
-        .stSelectbox { margin-bottom: 0.25rem !important; }
+        .stRadio > div {
+            margin-top: -10px !important;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 400px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
-# Title
+# ✅ Title
 st.markdown("<h1 style='text-align:center;'>🔍 SEO Audit Tool</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color: gray;'>Fast & Lightweight SEO Analyzer</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ✅ Summary Table
+# ✅ Website Summary
 st.markdown("### 🧾 Website Summary")
 st.dataframe(summary_table.style.set_properties(**{
     'text-align': 'center',
     'vertical-align': 'middle'
-}).set_table_styles([{
-    'selector': 'td',
-    'props': [('text-align', 'center'), ('vertical-align', 'middle')]
-}, {
-    'selector': 'th',
-    'props': [('text-align', 'center'), ('font-weight', 'bold')]
-}]), use_container_width=True)
+}).set_table_styles([
+    {'selector': 'td', 'props': [('text-align', 'center'), ('vertical-align', 'middle')]},
+    {'selector': 'th', 'props': [('text-align', 'center'), ('font-weight', 'bold')]}
+]), use_container_width=True)
 
 st.markdown("---")
 
-# ✅ Layout with adjusted column ratios
+# ✅ Layout Columns
 left, middle, right = st.columns([2, 4, 2])
 
 with left:
@@ -118,7 +122,6 @@ with left:
 
 with middle:
     st.subheader("Sub-Issue Breakdown")
-
     filter_options = ["All"] + MAIN_CHECKS.get(selected_main, [])
     selected_filter = st.selectbox("Filter by Issue Type", filter_options)
 
@@ -129,7 +132,10 @@ with middle:
     if selected_filter != "All":
         df_display = df_display[df_display["Issue Type"] == selected_filter]
 
-    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]], use_container_width=True, height=300)
+    st.markdown('<div class="scrollable-table">', unsafe_allow_html=True)
+    st.dataframe(df_display[["URL", f"{selected_main} Detail", "Length", "Issue Type"]],
+                 use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     st.subheader("Issue Summary")
